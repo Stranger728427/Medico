@@ -66,7 +66,6 @@ export const userLogin = async (req, res) => {
             
             const isPasswordMatch = await bcrypt.compare(password, user.password);
              
-
             if (!isPasswordMatch) {
                 return res.status(401).send({
                     success:false,
@@ -75,26 +74,80 @@ export const userLogin = async (req, res) => {
                 });
             } 
 
-            const token = jwt.sign({ id: user._id, role:user.role}, process.env.JWT_SECRET, { expiresIn: '1h' });
-            console.log("REAL TOKEN "+token)
-            res.cookie(`${user.role}`,token)
+            const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-             res.status(200).send({
-                success:true,
-                message:`${user.role} logged in succesfully`,
-                data:{
-                    token,
-                    user:{
-                        _id:user._id,
-                        name:user.name,
-                        email:user.email,
-                        role:user.role,
-                   }
+            const cookieName = user.role === "admin" ? "adminToken" : "userToken";
+            res.cookie(cookieName, token, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+            });
+            
+            res.status(200).send({
+              success: true,
+              message: `${user.role} logged in successfully`,
+              data: {
+                token,
+                user: {
+                  _id: user._id,
+                  name: user.name,
+                  email: user.email,
+                  role: user.role,
                 }
-             });    
+              }
+            });
+            
         }
     } catch (err) {
         console.error(err);
         return res.status(500).send('An error occurred while logging in user');
     }
 };
+
+
+export const deleteUser = async(req,res)=>{
+    try{
+        const user = await userModel.findByIdAndDelete(req.params.id);
+        if(!user){
+            return res.status(404).send({
+                success:false,
+                message:'User not found',
+                data:null
+                });
+                }
+                res.status(200).send({
+                    success:true,
+                    message:'User deleted successfully',
+                    data:null
+                })
+            }
+            catch(err){
+                console.error(err);
+                return res.status(500).send('An error occurred while deleting user');
+            }
+}
+
+//Edit user details
+
+export const updateUser = async(req,res)=>{
+    try{
+        const user = await userModel.findByIdAndUpdate(req.params.id,req.body,{new:true});
+        if(!user){
+            return res.status(404).send({
+                success:false,
+                message:'User not found',
+                data:null
+            })
+    }
+    res.status(200).send({
+        message:'user updated successfully',
+        data:user,
+        success:true
+    })
+
+}
+catch(err){
+    console.error(err);
+    return res.status(500).send('An error occurred while updating user');
+}
+
+}

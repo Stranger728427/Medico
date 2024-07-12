@@ -1,7 +1,9 @@
 import productModel from "../models/productModel.js";
 
+
+// Creating new Products
 export const createProducts = (req,res) =>{
-    console.log("ncjfdsbvdsvbdsjbvjjk")
+   
     try{
        const {title,price,details,image} = req.body;
        if(!title || !price || !details || !image) {
@@ -28,6 +30,8 @@ export const createProducts = (req,res) =>{
     }
 }
 
+//Getting products
+
 export const getProducts = async(req,res) =>{
   try{
      const products = await productModel.find();
@@ -38,4 +42,40 @@ export const getProducts = async(req,res) =>{
      console.log(err);
      res.status(500).json('Error when getting products')
   }
+}
+
+
+//Products Deleting
+export const deleteProducts = async(req,res)=>{
+   try{
+      const id = req.params.id;
+      await productModel.findByIdAndDelete(id);
+      res.status(200).json('Product deleted successfully');
+
+   }
+   catch(err){
+      console.log(err);
+      res.status(500).json('Error when deleting products')
+   }
+}
+
+//Product Editing
+
+export const updateProducts = async(req,res)=>{
+   try{
+      const id = req.params.id;
+      const {title,price,details,image} = req.body;
+      const product = await productModel.findByIdAndUpdate(id,{title,price,details,image},{new:true});
+      res.status(200).json({
+         product,
+         message:'Product updated successfully',
+         success:true
+
+      });
+
+   }
+   catch(err){
+      console.log(err);
+      res.status(500).json('Error when updating products')
+   }
 }
