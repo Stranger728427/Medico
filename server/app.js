@@ -11,7 +11,7 @@ config({path:"./config/config.env"})
 app.use(express.json());
 app.use(cookieParser());
 
-app.use('/',userRoutes)
+app.use('/',userRoutes)    
 
 app.use('/product',productRoutes)
 
