@@ -23,8 +23,11 @@ const HomePage = () => {
                 style={{ background: "cover", width: 150, height: 150 }}
               />
               <p></p>
-              <Typography.Title>{product.title}</Typography.Title>s
-              <Card.Meta title={product.title} description={product.price} />
+              <Typography.Title>{product.title}</Typography.Title>
+              <Card.Meta
+                title={product.title}
+                description={product.description}
+              />
               <Rate></Rate>
             </Card>
           </Space>
