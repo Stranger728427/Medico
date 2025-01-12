@@ -7,24 +7,28 @@ import jwt from 'jsonwebtoken';
    
     try {
         const { name, email, password, role } = req.body;
+       
+       
         if (!name || !email || !password || !role) {
             return res.status(400).send('Please fill all the fields');
         }
-        const isExistEmail = await userModel.findOne({ email });
+        const isExistEmail = await userModel.findOne({ email }).select('password');
 
         if (isExistEmail) {
             return res.status(400).send('Email already exists');
-        } else {
+        } 
+        
             const newUser = new userModel({
-                name,
+                name,   
                 email,
                 password,
                 role,
                 
             });
+
             const user = await newUser.save();
 
-            console.log(user);
+            //console.log(user);
 
             return res.status(201).send({
                 success:true,
@@ -36,13 +40,14 @@ import jwt from 'jsonwebtoken';
                     role:user.role,
                     
                 }
+                
             });
 
-        }
+        
     } catch (err) {
         console.error(err);
         return res.status(500).send('An error occurred while creating the user');
-    }
+    } 
 };
 
 export const userLogin = async (req, res) => {
@@ -69,14 +74,14 @@ export const userLogin = async (req, res) => {
             if (!isPasswordMatch) {
                 return res.status(401).send({
                     success:false,
-                    message:'Invalid credentials',
+                    message:'Invalid password or email',
                     data:null
                 });
             } 
 
-            const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+            const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
-            const cookieName = user.role === "admin" ? "adminToken" : "userToken";
+            const cookieName = (user.role === "admin") ? "adminToken" : "userToken";
             res.cookie(cookieName, token, {
               httpOnly: true,
               secure: process.env.NODE_ENV === 'production',

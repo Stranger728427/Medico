@@ -1,17 +1,13 @@
-
-
 // import './App.css'
 
-import HomeComponent from "./components/HomeComponent"
+import HomePage from "./pages/Homepage";
 
 function App() {
-
-
   return (
     <>
-      <HomeComponent/>
+      <HomePage />
     </>
-  )
+  );
 }
 
-export default App
+export default App;

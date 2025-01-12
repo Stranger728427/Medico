@@ -3,9 +3,9 @@ import { createProducts, getProducts,deleteProducts,updateProducts } from '../co
 import { isAdminAuthenticated } from '../middlewares/auth.js'
 const router = express.Router();
 
-router.post('/admin/createProducts', isAdminAuthenticated,createProducts);
-router.delete('/admin/deleteProducts/:id', isAdminAuthenticated,deleteProducts);
-router.put('/admin/updateProducts/:id', isAdminAuthenticated,updateProducts);
+router.post('/createProducts', isAdminAuthenticated,createProducts);
+router.delete('/deleteProducts/:id', isAdminAuthenticated,deleteProducts);
+router.put('/updateProducts/:id', isAdminAuthenticated,updateProducts);
 
 router.post('/getProducts', getProducts);
 
