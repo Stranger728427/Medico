@@ -1,86 +1,80 @@
-import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  showModal,
+  closeModal,
+  startLoading,
+  stopLoading,
+  toggleSignup,
+  loginSuccess,
+  logout,
+  toggleProfilePopup,
+} from "../../redux/slice/LoginSignupPopupSlice";
+import { Avatar, Button, Form, Input, message, Modal, Typography } from "antd";
+import Profile from "../Profile";
 import { UserOutlined } from "@ant-design/icons";
-import { Avatar, Button, Modal, Form, Input, message, Typography } from "antd";
-
-interface User {
-  username: string;
-  email: string;
-  password: string;
-}
 
 const LoginSignup = () => {
-  const [visible, setVisible] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [goSignup, setGoSignup] = useState<boolean>(false);
-  const [goLogin, setGoLogin] = useState<boolean>(false);
-  const [login, setLogin] = useState<boolean>(false);
+  const dispatch = useDispatch();
+  const { visible, loading, goSignup, login, isProfilePopupViewed, user } =
+    useSelector((state: any) => state.auth);
 
   const [form] = Form.useForm();
-
-  const FormValues = Form.useWatch<User>([], { form: form });
-
-  const [StateOfLoginSignup, setStateOfLoginSignup] =
-    useState<string>("Signup");
-
-  // Handle Modal
-  const showModal = () => {
-    setVisible(true);
-  };
-
-  const closeModal = () => {
-    setVisible(false);
-  };
-
-  // Handle submit
+  const FormValues = Form.useWatch([], { form: form });
 
   const handleSubmit = () => {
-    setLoading(true);
+    dispatch(startLoading());
 
     console.log("Received values:", FormValues.username);
 
     setTimeout(() => {
-      setLoading(false);
-      setVisible(false);
+      dispatch(stopLoading());
+      dispatch(closeModal());
+      dispatch(
+        loginSuccess({ username: FormValues.username, email: FormValues.email })
+      );
+      form.resetFields();
+      message.success(
+        `${
+          goSignup
+            ? `${FormValues.username} Signup`
+            : `${FormValues.email} Login`
+        } successful`
+      );
     }, 2000);
-
-    setLogin(true);
-
-    message.success(
-      `${
-        goSignup ? `${FormValues.username}Signup` : `${FormValues.email}Login`
-      } successful`
-    );
-  };
-
-  // Handle state of login and signup
-  const handleStateOfLoginSignup = () => {
-    setStateOfLoginSignup(goSignup ? "Signup" : "Login");
-    setGoSignup(!goSignup);
-    setGoLogin(!goLogin);
   };
 
   return (
     <div>
       {login ? (
-        <Avatar
-          size="large"
-          icon={<UserOutlined />}
-          style={{
-            marginRight: "10px",
-            cursor: "pointer",
-            backgroundColor: "#f56a00",
-          }}
-          onClick={showModal}
-        />
+        <>
+          <Avatar
+            size="large"
+            icon={<UserOutlined />}
+            style={{
+              marginRight: "10px",
+              cursor: "pointer",
+              backgroundColor: "#f56a00",
+            }}
+            onClick={() => dispatch(toggleProfilePopup())}
+          />
+          {isProfilePopupViewed && (
+            <Profile
+              isModalVisible={isProfilePopupViewed}
+              closeModal={() => dispatch(toggleProfilePopup())}
+              handleLogout={() => dispatch(logout())}
+            />
+          )}
+        </>
       ) : (
-        <Button type="primary" onClick={showModal}>
+        <Button type="primary" onClick={() => dispatch(showModal())}>
           Login
         </Button>
       )}
+
       <Modal
         title="Login/Signup"
         open={visible}
-        onCancel={closeModal}
+        onCancel={() => dispatch(closeModal())}
         footer={null}
       >
         <Form
@@ -89,10 +83,9 @@ const LoginSignup = () => {
           labelCol={{ span: 8 }}
           wrapperCol={{ span: 16 }}
           initialValues={{ remember: false }}
-          // autoComplete="off"
           onFinish={handleSubmit}
         >
-          {goSignup ? (
+          {goSignup && (
             <Form.Item
               label="Username"
               name="username"
@@ -102,8 +95,7 @@ const LoginSignup = () => {
             >
               <Input />
             </Form.Item>
-          ) : null}
-
+          )}
           <Form.Item
             label="Email"
             name="email"
@@ -111,7 +103,6 @@ const LoginSignup = () => {
           >
             <Input />
           </Form.Item>
-
           <Form.Item
             label="Password"
             name="password"
@@ -119,8 +110,7 @@ const LoginSignup = () => {
           >
             <Input.Password />
           </Form.Item>
-
-          {goSignup ? (
+          {goSignup && (
             <Form.Item
               label="Confirm Password"
               name="confirmPassword"
@@ -130,20 +120,18 @@ const LoginSignup = () => {
             >
               <Input.Password />
             </Form.Item>
-          ) : null}
-
+          )}
           <Form.Item wrapperCol={{ offset: 12, span: 16 }}>
             <Button type="primary" htmlType="submit" loading={loading}>
               Submit
             </Button>
           </Form.Item>
         </Form>
-
-        <Typography.Link italic strong onClick={handleStateOfLoginSignup}>
+        <Typography.Link italic strong onClick={() => dispatch(toggleSignup())}>
           <Typography.Text type="secondary">
             You Don't Have Account Then Go To:{" "}
           </Typography.Text>
-          {StateOfLoginSignup}`
+          {goSignup ? "Signup" : "Login"}
         </Typography.Link>
       </Modal>
     </div>
