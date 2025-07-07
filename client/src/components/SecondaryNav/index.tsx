@@ -1,12 +1,29 @@
+// const SecondaryNav = () => {
+//   return (
+//     <div>
 
+//     </div>
+//   )
+// }
 
+// export default SecondaryNav
 
-const SecondaryNav = () => {
-  return (
-    <div>
-        
-    </div>
-  )
-}
+// const handleSubmit = () => {
+//   dispatch(startLoading());
 
-export default SecondaryNav
+//   setTimeout(() => {
+//     dispatch(stopLoading());
+//     dispatch(closeModal());
+//     dispatch(
+//       loginSuccess({ username: FormValues.username, email: FormValues.email })
+//     );
+//     form.resetFields();
+//     message.success(
+//       `${
+//         goSignup
+//           ? `${FormValues.username} Signup`
+//           : `${FormValues.email} Login`
+//       } successful`
+//     );
+//   }, 2000);
+// };

@@ -1,30 +1,43 @@
-// import axios from "axios";
+import { useMutation } from "@tanstack/react-query";
+import { message } from "antd";
+import axios from "axios";
 
-// type LoginSignupApiProps = {
-//   email: string;
-//   username: string;
-//   password: string;
-//   confirmPassword: string;
-// };
+type LoginSignupApiProps = {
+  username?: string;
+  email: string;
+  password: string;
+  confirmpassword?: string;
+  role: string;
+};
 
-// const useSignupApi = () => {
-//   const SignupApi = async (data: LoginSignupApiProps) => {
-//     try {
-//       const response = await axios.post(
-//         "http://localhost:3000/api/auth/signup",
-//         {
-//           email: data.email,
-//           username: data.username,
-//           password: data.password,
-//           confirmPassword: data.confirmPassword,
-//         }
-//       );
-//     } catch (err) {
-//       console.log(err);
-//     }
-//   };
+export const useAuth = () => {
+  const BASE_URL = "http://localhost:3000/api/auth";
 
-//   return <div>useLoginSignupApi</div>;
-// };
+  const SignupApi = useMutation({
+    mutationFn: async (data: LoginSignupApiProps) => {
+      const response = await axios.post(`${BASE_URL}/signup`, data);
+      console.log(response.data);
+      return response.data;
+    },
+    onSuccess: (response) => {
+      // console.log(response.data);
+      message.success(response.message);
+    },
+  });
 
-// export default useLoginSignupApi;
+  const LoginApi = useMutation({
+    mutationFn: async (data: LoginSignupApiProps) => {
+      const response = await axios.post(`${BASE_URL}/login`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      // console.log("Login Success");
+      message.success("Login Success");
+    },
+  });
+
+  return {
+    SignupApi,
+    LoginApi,
+  };
+};

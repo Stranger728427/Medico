@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+
+
 const connectDB = async (uri) =>{
     const DbOptions = {
         dbName:"Shopify_Db"
@@ -10,7 +12,7 @@ const connectDB = async (uri) =>{
        console.log("Database is connected successfully")
     }catch(err){
         console.log("An error occured by connection Database");
-        res.status(401).json("err occured in database connection")
+        res.status(500).json("err occured in database connection")
     }
 }
 
