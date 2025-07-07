@@ -6,36 +6,47 @@ import jwt from 'jsonwebtoken';
  export const userRegister = async (req, res) => {
    
     try {
-        const { name, email, password, role } = req.body;
-       
-       
-        if (!name || !email || !password || !role) {
-            return res.status(400).send('Please fill all the fields');
+        const { username, email, password, confirmpassword, role } = req.body;
+        
+        if (!username || !email || !password || !confirmpassword || !role) {
+            return res.status(400).json({
+                message: "Please fill all fields",
+                status:400,
+            });
         }
-        const isExistEmail = await userModel.findOne({ email }).select('password');
+        const isExistEmail = await userModel.findOne({ email }).select('password').select('confirmpassword');
+   
+        if(password!==confirmpassword) res.status(404).json({
+            status:404,
+            message: "Passwords do not match",
+            status:404,
+
+        })
 
         if (isExistEmail) {
             return res.status(400).send('Email already exists');
         } 
         
             const newUser = new userModel({
-                name,   
+                username,   
                 email,
                 password,
+                confirmpassword,
                 role,
                 
             });
 
             const user = await newUser.save();
 
-            //console.log(user);
+             console.log(user);
 
-            return res.status(201).send({
+            return res.status(201).json({
                 success:true,
+                status:201,
                 message:'User created successfully',
                 user:{
                     _id:user._id,
-                    name:user.name,
+                    name:username,
                     email:user.email,
                     role:user.role,
                     
@@ -55,6 +66,7 @@ export const userLogin = async (req, res) => {
         const { email, password, role } = req.body;
         if (!email || !password || !role) {
             return res.status(400).send({
+                status:400,
                 success:false,
                 message:'Please provide email and password',
                 data:null
@@ -64,6 +76,7 @@ export const userLogin = async (req, res) => {
 
         if (!user) {
             return res.status(400).send({
+                status:400,
                 success:false,
                 message:'User does not exist',
             });
@@ -73,6 +86,7 @@ export const userLogin = async (req, res) => {
              
             if (!isPasswordMatch) {
                 return res.status(401).send({
+                    status:401,
                     success:false,
                     message:'Invalid password or email',
                     data:null
@@ -88,6 +102,7 @@ export const userLogin = async (req, res) => {
             });
             
             res.status(200).send({
+              status:200,
               success: true,
               message: `${user.role} logged in successfully`,
               data: {

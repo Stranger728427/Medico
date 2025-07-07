@@ -1,4 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
+import { useAuth } from "../../Api/LoginSignupAPi";
 import {
   showModal,
   closeModal,
@@ -9,43 +10,73 @@ import {
   logout,
   toggleProfilePopup,
 } from "../../redux/slice/LoginSignupPopupSlice";
-import { Avatar, Button, Form, Input, message, Modal, Typography } from "antd";
+
+import {
+  Avatar,
+  Button,
+  Form,
+  Input,
+  message,
+  Modal,
+  Select,
+  Typography,
+} from "antd";
+
 import Profile from "../Profile";
 import { UserOutlined } from "@ant-design/icons";
+import { useState } from "react";
 
 const LoginSignup = () => {
   const dispatch = useDispatch();
+
   const { visible, loading, goSignup, login, isProfilePopupViewed, user } =
     useSelector((state: any) => state.auth);
 
+  const [action, setAction] = useState("Login");
+
   const [form] = Form.useForm();
   const FormValues = Form.useWatch([], { form: form });
+  //console.log(FormValues);
 
-  const handleSubmit = () => {
-    dispatch(startLoading());
+  const { SignupApi, LoginApi } = useAuth();
 
-    console.log("Received values:", FormValues.username);
-
-    setTimeout(() => {
+  const handleSignupSubmit = async () => {
+    try {
+      const response = await SignupApi.mutateAsync(FormValues);
+      //console.log(response);
       dispatch(stopLoading());
+      dispatch(loginSuccess(response));
+      dispatch(toggleProfilePopup());
+      dispatch(toggleSignup());
       dispatch(closeModal());
-      dispatch(
-        loginSuccess({ username: FormValues.username, email: FormValues.email })
-      );
-      form.resetFields();
-      message.success(
-        `${
-          goSignup
-            ? `${FormValues.username} Signup`
-            : `${FormValues.email} Login`
-        } successful`
-      );
-    }, 2000);
+    } catch (error: any) {
+      dispatch(stopLoading());
+      message.error(error.message) || "error while signup";
+    }
+  };
+
+  const handleLoginSubmit = async () => {
+    dispatch(startLoading());
+    try {
+      const response = await LoginApi.mutateAsync(FormValues);
+
+      dispatch(stopLoading());
+      // dispatch(loginSuccess(response));
+      if (response.status === "200") {
+        message.success(`${response.message}`);
+      }
+      dispatch(toggleProfilePopup());
+      dispatch(toggleSignup());
+      dispatch(closeModal());
+    } catch (error) {
+      dispatch(stopLoading());
+      message.error(error.message) || "error while login";
+    }
   };
 
   return (
     <div>
-      {login ? (
+      {LoginApi.isSuccess ? (
         <>
           <Avatar
             size="large"
@@ -72,20 +103,20 @@ const LoginSignup = () => {
       )}
 
       <Modal
-        title="Login/Signup"
+        title={action}
         open={visible}
         onCancel={() => dispatch(closeModal())}
         footer={null}
       >
         <Form
           form={form}
-          name={goSignup ? "Signup" : "Login"}
+          name={action.toLowerCase()}
           labelCol={{ span: 8 }}
           wrapperCol={{ span: 16 }}
           initialValues={{ remember: false }}
-          onFinish={handleSubmit}
+          onFinish={action === "Login" ? handleLoginSubmit : handleSignupSubmit}
         >
-          {goSignup && (
+          {action === "Signup" && (
             <Form.Item
               label="Username"
               name="username"
@@ -110,10 +141,10 @@ const LoginSignup = () => {
           >
             <Input.Password />
           </Form.Item>
-          {goSignup && (
+          {action === "Signup" && (
             <Form.Item
               label="Confirm Password"
-              name="confirmPassword"
+              name="confirmpassword"
               rules={[
                 { required: true, message: "Please confirm your password!" },
               ]}
@@ -121,17 +152,36 @@ const LoginSignup = () => {
               <Input.Password />
             </Form.Item>
           )}
+
+          <Form.Item
+            label="role"
+            name="role"
+            rules={[{ required: true, message: "please select correct role" }]}
+          >
+            <Select placeholder="choose user type">
+              <Select.Option value="admin">Admin</Select.Option>
+              <Select.Option value="user">User</Select.Option>
+            </Select>
+          </Form.Item>
+
           <Form.Item wrapperCol={{ offset: 12, span: 16 }}>
             <Button type="primary" htmlType="submit" loading={loading}>
               Submit
             </Button>
           </Form.Item>
         </Form>
-        <Typography.Link italic strong onClick={() => dispatch(toggleSignup())}>
+        <Typography.Link
+          italic
+          strong
+          onClick={() => setAction(action === "Login" ? "Signup" : "Login")}
+        >
           <Typography.Text type="secondary">
-            You Don't Have Account Then Go To:{" "}
+            {/* change the text title text link of login and signup based on onClick*/}
+            {action === "Login"
+              ? "Don't have an account? Sign up here: "
+              : "Already have an account? Login here: "}
           </Typography.Text>
-          {goSignup ? "Signup" : "Login"}
+          {action === "Login" ? "Signup" : "Login"}
         </Typography.Link>
       </Modal>
     </div>
