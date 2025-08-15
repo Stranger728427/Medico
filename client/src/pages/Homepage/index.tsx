@@ -1,13 +1,11 @@
 import { Badge, Button, Card, Rate, Space, Typography, Image } from "antd";
 import { useProductsApi } from "../../Api/Medicine";
-import Header from "../../components/Header";
 
 const HomePage = () => {
   const { products } = useProductsApi();
 
   return (
     <div>
-      <Header />
       {products &&
         products.map((product) => (
           <Space

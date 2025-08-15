@@ -1,21 +1,21 @@
-import { Button, Drawer, Menu, Modal } from "antd";
+import { Button, Drawer, Menu } from "antd";
 
 interface ProfileProps {
-  isModalVisible: boolean;
-  closeModal: () => void;
+  isDrawerVisible: boolean;
+  onCloseDrawer: () => void;
   handleLogout: () => void;
 }
 
 const Profile = ({
-  isModalVisible,
-  closeModal,
+  isDrawerVisible,
+  onCloseDrawer,
   handleLogout,
 }: ProfileProps) => {
   return (
     <Drawer
       title="Profile"
-      open={isModalVisible}
-      onClose={closeModal}
+      open={isDrawerVisible}
+      onClose={onCloseDrawer}
       footer={null}
       style={{
         top: "50%",

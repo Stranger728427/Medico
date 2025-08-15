@@ -1,15 +1,4 @@
-import { useDispatch, useSelector } from "react-redux";
-import { useAuth } from "../../Api/LoginSignupAPi";
-import {
-  showModal,
-  closeModal,
-  startLoading,
-  stopLoading,
-  toggleSignup,
-  loginSuccess,
-  logout,
-  toggleProfilePopup,
-} from "../../redux/slice/LoginSignupPopupSlice";
+import { useDispatch } from "react-redux";
 
 import {
   Avatar,
@@ -25,58 +14,72 @@ import {
 import Profile from "../Profile";
 import { UserOutlined } from "@ant-design/icons";
 import { useState } from "react";
+import { userAuth } from "../../Api/LoginSignupAPi";
+import { login, logout, updateUserAuth } from "../../redux/slice/UserSlice";
 
 const LoginSignup = () => {
   const dispatch = useDispatch();
 
-  const { visible, loading, goSignup, login, isProfilePopupViewed, user } =
-    useSelector((state: any) => state.auth);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isDrawerVisible, setIsDrawerVisible] = useState<boolean>(false);
 
   const [action, setAction] = useState("Login");
 
   const [form] = Form.useForm();
   const FormValues = Form.useWatch([], { form: form });
-  //console.log(FormValues);
 
-  const { SignupApi, LoginApi } = useAuth();
+  const { SignupApi, LoginApi, userLogout } = userAuth();
+
+  const handleClose = () => {
+    setIsModalOpen(false);
+    form.resetFields();
+  };
+  const handleOpen = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseProfileDrawer = () => {
+    setIsDrawerVisible(false);
+  };
+
+  const handleOpenProfileDrawer = () => {
+    setIsDrawerVisible(true);
+  };
 
   const handleSignupSubmit = async () => {
     try {
-      const response = await SignupApi.mutateAsync(FormValues);
-      //console.log(response);
-      dispatch(stopLoading());
-      dispatch(loginSuccess(response));
-      dispatch(toggleProfilePopup());
-      dispatch(toggleSignup());
-      dispatch(closeModal());
+      await SignupApi.mutateAsync(FormValues);
+      dispatch(updateUserAuth(FormValues));
+      handleClose();
     } catch (error: any) {
-      dispatch(stopLoading());
       message.error(error.message) || "error while signup";
     }
   };
 
   const handleLoginSubmit = async () => {
-    dispatch(startLoading());
     try {
-      const response = await LoginApi.mutateAsync(FormValues);
+      await LoginApi.mutateAsync(FormValues);
+      dispatch(login(FormValues));
+      handleClose();
+    } catch (error: any) {
+      message.error(error.message) || "error while Login";
+    }
+  };
 
-      dispatch(stopLoading());
-      // dispatch(loginSuccess(response));
-      if (response.status === "200") {
-        message.success(`${response.message}`);
-      }
-      dispatch(toggleProfilePopup());
-      dispatch(toggleSignup());
-      dispatch(closeModal());
+  const handleLogout = async () => {
+    try {
+      await userLogout.mutateAsync();
+      dispatch(logout());
+      handleCloseProfileDrawer();
+      message.success("Logout Success");
     } catch (error) {
-      dispatch(stopLoading());
-      message.error(error.message) || "error while login";
+      message.error("Logout failed");
     }
   };
 
   return (
     <div>
-      {LoginApi.isSuccess ? (
+      {LoginApi.isSuccess && !userLogout.isSuccess ? (
         <>
           <Avatar
             size="large"
@@ -86,26 +89,29 @@ const LoginSignup = () => {
               cursor: "pointer",
               backgroundColor: "#f56a00",
             }}
-            onClick={() => dispatch(toggleProfilePopup())}
+            onClick={handleOpenProfileDrawer}
           />
-          {isProfilePopupViewed && (
-            <Profile
-              isModalVisible={isProfilePopupViewed}
-              closeModal={() => dispatch(toggleProfilePopup())}
-              handleLogout={() => dispatch(logout())}
-            />
-          )}
+
+          <Profile
+            isDrawerVisible={isDrawerVisible}
+            onCloseDrawer={handleCloseProfileDrawer}
+            handleLogout={handleLogout}
+          />
         </>
       ) : (
-        <Button type="primary" onClick={() => dispatch(showModal())}>
+        <Button
+          type="primary"
+          onClick={handleOpen}
+          loading={LoginApi.isPending}
+        >
           Login
         </Button>
       )}
 
       <Modal
         title={action}
-        open={visible}
-        onCancel={() => dispatch(closeModal())}
+        open={isModalOpen}
+        onCancel={handleClose}
         footer={null}
       >
         <Form
@@ -165,7 +171,13 @@ const LoginSignup = () => {
           </Form.Item>
 
           <Form.Item wrapperCol={{ offset: 12, span: 16 }}>
-            <Button type="primary" htmlType="submit" loading={loading}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={
+                action === "Login" ? LoginApi.isPending : SignupApi.isPending
+              }
+            >
               Submit
             </Button>
           </Form.Item>

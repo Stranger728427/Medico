@@ -123,6 +123,22 @@ export const userLogin = async (req, res) => {
     }
 };
 
+export const userLogout = async (req, res) => {
+  try {
+    res.clearCookie('jwtToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+
+    return res.status(200).json({ message: 'Logged out successfully' });
+  } catch (err) {
+    console.error('Logout error:', err);
+    return res.status(500).json({ error: 'Logout error' });
+  }
+};
+
+
 
 export const deleteUser = async(req,res)=>{
     try{
